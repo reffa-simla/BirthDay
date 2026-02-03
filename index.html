@@ -10,6 +10,7 @@
       --text: rgba(255,255,255,.92);
       --muted: rgba(255,255,255,.72);
       --gold: #d9c08f;
+      --pink: #ff6fae;
       --line: rgba(255,255,255,.18);
       --overlayA: rgba(0,0,0,.62);
       --overlayB: rgba(0,0,0,.36);
@@ -371,10 +372,123 @@
       color: rgba(255,255,255,.82);
     }
 
+    /* LOVE button */
+    .love-btn{
+      margin-top: 18px;
+      display:inline-flex;
+      align-items:center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.22);
+      backdrop-filter: blur(10px);
+      color: rgba(255,255,255,.90);
+      cursor:pointer;
+      user-select:none;
+    }
+    .love-btn:hover{ background: rgba(0,0,0,.30); }
+    .love-btn:active{ transform: translateY(1px); }
+
+    .love-icon{
+      font-size: 20px;
+      line-height: 1;
+      color: var(--text);
+      text-shadow: 0 14px 30px rgba(255, 111, 174, .20);
+    }
+    .love-btn.pulse{ animation: pulse 260ms ease-out; }
+    @keyframes pulse{
+      0%{ transform: scale(1); }
+      60%{ transform: scale(1.06); }
+      100%{ transform: scale(1); }
+    }
+
+    .love-burst{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    .love-particle{
+      position: fixed;
+      left: var(--x);
+      top: var(--y);
+      transform: translate(-50%, -50%) scale(.7);
+      opacity: 0;
+      pointer-events:none;
+      font-size: var(--s);
+      color: var(--pink);
+      text-shadow: 0 16px 30px rgba(255, 111, 174, .22);
+      animation: love-fly 1050ms ease-out forwards;
+      will-change: transform, opacity;
+    }
+    @keyframes love-fly{
+      0%{ opacity: 0; transform: translate(-50%, -50%) scale(.7); }
+      12%{ opacity: 1; }
+      100%{
+        opacity: 0;
+        transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.22);
+      }
+    }
+    /* AUDIO GATE BUTTON (muncul kalau autoplay diblok) */
+    .audio-gate{
+      position: fixed;
+      left: 50%;
+      top: 22px;
+      transform: translateX(-50%);
+      z-index: 100001;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.28);
+      backdrop-filter: blur(10px);
+      color: rgba(255,255,255,.88);
+      cursor: pointer;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: 11px;
+      user-select:none;
+    }
+    .audio-gate:hover{ background: rgba(0,0,0,.38); }
+    .audio-dot{
+      width: 9px; height: 9px; border-radius: 999px;
+      background: var(--pink);
+      box-shadow: 0 0 18px rgba(255,111,174,.35);
+    }
+
+    @media (max-width: 780px){
+      .row{
+        flex-direction: column;
+        justify-content:center;
+        padding: 0 12px;
+      }
+      .card{ text-align:center; }
+      .photo{ width: min(420px, 92%); transition-delay: .12s; }
+      .list{ text-align:left; }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      html{ scroll-behavior:auto; }
+      .fade-bg .bg,
+      .fade-bg .content,
+      .fade-bg .row,
+      .photo{ transition:none; transform:none; opacity:1; }
+    }
   </style>
 </head>
 
 <body>
+  <!-- AUDIO -->
+  <audio id="bgm" src="song.mp3" preload="auto" loop></audio>
+
+  <!-- tombol muncul kalau autoplay diblok -->
+  <button id="audioGate" class="audio-gate" type="button" aria-label="Play music">
+    <span class="audio-dot"></span> Play music
+  </button>
 
   <!-- 1) HERO -->
   <section class="hero" id="top" aria-label="Birthday Hero">
@@ -444,7 +558,6 @@
         Aku melihat sabarmu dalam diam,
         dan tulusmu dalam hal-hal kecil.
 
-        Aku notice,
         kamu selalu berusaha lebih dari yang orang lihat,
         selalu mencintai dengan sepenuh hati.
 
@@ -512,7 +625,12 @@
     <div class="final-title content">
       <h2>HAPPY BIRTHDAY!</h2>
       <div class="name">Reffa Simla Melati Putri</div>
+
+      <button class="love-btn" type="button" aria-label="Send love">
+        <span class="love-icon">♥</span>
+      </button>
     </div>
+    <div class="love-burst" aria-hidden="true"></div>
   </section>
 
   <script>
@@ -526,6 +644,83 @@
     }, { threshold: 0.25 });
 
     sections.forEach(sec => io.observe(sec));
+
+        // LOVE SPREAD FULLSCREEN
+    const loveBtn = document.querySelector('.love-btn');
+    const burst = document.querySelector('.love-burst');
+
+    function rand(min, max){ return Math.random() * (max - min) + min; }
+
+    function shootLove(){
+      if (!loveBtn || !burst) return;
+
+      // pulse
+      loveBtn.classList.remove('pulse');
+      void loveBtn.offsetWidth;
+      loveBtn.classList.add('pulse');
+
+      // origin: center of button in viewport coords
+      const r = loveBtn.getBoundingClientRect();
+      const ox = r.left + r.width/2;
+      const oy = r.top + r.height/2;
+
+      const count = 120; // lebih banyak biar "selayar"
+      for (let i=0; i<count; i++){
+        const p = document.createElement('span');
+        p.className = 'love-particle';
+        p.textContent = '♥';
+
+        // 360 degree spread + jarak besar (selayar)
+        const angle = rand(0, Math.PI * 2);
+        const dist  = rand(140, 700);
+
+        // sedikit bias ke atas biar cantik
+        const dx = Math.cos(angle) * dist;
+        const dy = Math.sin(angle) * dist - rand(40, 140);
+
+        p.style.setProperty('--x', `${ox}px`);
+        p.style.setProperty('--y', `${oy}px`);
+        p.style.setProperty('--dx', `${dx}px`);
+        p.style.setProperty('--dy', `${dy}px`);
+        p.style.setProperty('--s', `${rand(14, 26)}px`);
+
+        burst.appendChild(p);
+        p.addEventListener('animationend', () => p.remove());
+      }
+    }
+
+    loveBtn?.addEventListener('click', shootLove);
+
+    // =========================
+    // AUDIO AUTOPLAY (safe)
+    // =========================
+    const bgm = document.getElementById('bgm');
+    const gate = document.getElementById('audioGate');
+
+    async function tryAutoplay(){
+      if(!bgm) return;
+      bgm.volume = 0.30;
+      bgm.muted = true;
+
+      try{
+        await bgm.play(); // biasanya boleh kalau muted
+      }catch(e){
+        if(gate) gate.style.display = 'inline-flex';
+      }
+    }
+
+    function enableSound(){
+      if(!bgm) return;
+      bgm.muted = false;
+      bgm.play().catch(()=>{});
+      if(gate) gate.style.display = 'none';
+    }
+
+    window.addEventListener('DOMContentLoaded', tryAutoplay);
+
+    // sekali tap/klik di mana pun -> unmute & play
+    window.addEventListener('pointerdown', enableSound, { once: true });
+    gate?.addEventListener('click', enableSound);
   </script>
 
 </body>
