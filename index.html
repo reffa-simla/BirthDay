@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HAPPY BIRTHDAY!</title>
+
+  <style>
+    :root{
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+      --gold: #d9c08f;
+      --line: rgba(255,255,255,.18);
+      --overlayA: rgba(0,0,0,.62);
+      --overlayB: rgba(0,0,0,.36);
+      --overlayC: rgba(0,0,0,.62);
+    }
+    *{ box-sizing:border-box; }
+    html{ scroll-behavior:smooth; }
+    body{ margin:0; background:#07080a; color:var(--text); }
+
+    /* shared scene */
+    .scene{
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      padding: 72px 22px;
+    }
+    .bg{
+      position:absolute; inset:0;
+      background-position:center;
+      background-size:cover;
+      transform: scale(1.04);
+      filter: saturate(.95) contrast(1.05);
+      z-index:0;
+    }
+
+    /* default overlay */
+    .overlay{
+      position:absolute; inset:0; z-index:1;
+      background:
+        radial-gradient(900px 560px at 25% 70%, rgba(0,0,0,.55), rgba(0,0,0,0)),
+        linear-gradient(to bottom, var(--overlayA), var(--overlayB), var(--overlayC));
+      pointer-events:none;
+    }
+
+    .content{
+      position:relative; z-index:2;
+      width:min(980px, 100%);
+      text-align:center;
+    }
+
+    /* elegant type */
+    .serif{ font-family: ui-serif, "Georgia", "Times New Roman", serif; }
+    .sans { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
+    /* ==================================
+       Fade in + Fade out (toggle on scroll)
+       ================================== */
+    .fade-bg .bg{
+      opacity: 0;
+      transition: opacity 1.0s ease;
+    }
+    .fade-bg .content,
+    .fade-bg .row{
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .8s ease, transform .8s ease;
+      transition-delay: .10s;
+    }
+    .fade-bg.in-view .bg{ opacity: 1; }
+    .fade-bg.in-view .content,
+    .fade-bg.in-view .row{
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* =========================
+       HERO (teks lebih ke kanan & 21st ikut)
+       ========================= */
+    .hero{
+      display:block;
+      padding:0;
+      margin:0;
+      position:relative;
+      min-height:100vh;
+      overflow:hidden;
+    }
+
+    .hero .bg{ background-image: url('bg-hero.jpg'); }
+
+    /* garis tipis frame seperti screenshot */
+    .hero .frame{
+      position:absolute; left:18px; right:18px; height:1px;
+      background: rgba(255,255,255,.14);
+      z-index:3;
+    }
+    .hero .frame.top{ top:18px; }
+    .hero .frame.bottom{ bottom:18px; }
+
+    .hero__inner{
+      position:relative;
+      z-index:2;
+      min-height:100vh;
+      padding: 40px clamp(18px, 4vw, 56px);
+    }
+
+    /* stack: satu grup untuk AGE + TITLE + DATE */
+    .hero__stack{
+      position:absolute;
+      right: clamp(26px, 6vw, 96px); /* ini yang bikin lebih ke kanan */
+      bottom: clamp(26px, 6vw, 84px);
+      width: min(720px, 92vw);
+      text-align:left;
+    }
+
+    .hero__title{
+      margin:0;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      line-height: 1.02;
+      font-size: clamp(52px, 6.8vw, 110px);
+      text-shadow: 0 18px 50px rgba(0,0,0,.55);
+    }
+
+    .hero__date{
+      margin-top: 18px;
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* 21st ikutin stack (bukan absolute ke layar) */
+    .hero__age{
+      position:absolute;
+      left: 0;                 /* nempel ke kiri stack */
+      top: -54px;              /* naik di atas title */
+      font-size: clamp(34px, 4.8vw, 74px);
+      color: rgba(255,255,255,.78);
+      font-style: italic;
+      letter-spacing: .02em;
+      font-family: "Brush Script MT", "Snell Roundhand", "Apple Chancery", cursive;
+      text-shadow: 0 16px 40px rgba(0,0,0,.55);
+      user-select:none;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 640px){
+      .hero__stack{
+        left: 18px;
+        right: 18px;
+        bottom: 28px;
+        text-align:left;
+      }
+      .hero__age{
+        position:relative;
+        top:auto;
+        margin-bottom: 8px;
+      }
+    }
+
+    /* CHAPTER TITLE */
+    .chapter .h2{
+      margin:0;
+      font-size: clamp(34px, 5.2vw, 64px);
+      line-height: 1.15;
+      letter-spacing:.02em;
+    }
+    .chapter .accent{ color: var(--gold); font-style: italic; }
+    .chapter .divider{
+      width: min(540px, 85%);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--line), transparent);
+      margin: 18px auto 0;
+    }
+    .chapter .overlay{
+      background:
+        radial-gradient(1200px 720px at 50% 40%, rgba(0,0,0,.00), rgba(0,0,0,.52)),
+        radial-gradient(900px 520px at 50% 75%, rgba(0,0,0,.18), rgba(0,0,0,0)),
+        linear-gradient(to bottom, rgba(0,0,0,.16), rgba(0,0,0,.18));
+    }
+
+    /* ROW layout: kiri card + kanan foto */
+    .row{
+      position:relative; z-index:2;
+      width:min(980px, 100%);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 26px;
+      min-height: 100vh;
+      padding: 0 clamp(18px, 4vw, 56px);
+    }
+
+    /* letter card */
+    .card{
+      width: min(560px, 92%);
+      padding: 22px 20px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: linear-gradient(180deg, rgba(0,0,0,.30), rgba(0,0,0,.18));
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+      text-align:left;
+    }
+    .eyebrow{
+      letter-spacing:.28em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: rgba(217,192,143,.9);
+      margin: 0 0 10px;
+    }
+    .card h3{
+      margin: 0 0 8px;
+      font-size: 22px;
+      letter-spacing:.01em;
+    }
+    .card p{
+      margin:0;
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 15.5px;
+    }
+
+    /* FOTO KANAN: POP UP ANIMATION */
+    .photo{
+      width: min(380px, 40vw);
+      aspect-ratio: 3 / 4;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.18);
+      backdrop-filter: blur(10px);
+
+      opacity: 0;
+      transform: translateY(14px) scale(.92);
+      box-shadow: 0 10px 26px rgba(0,0,0,.25);
+
+      transition:
+        opacity .75s ease,
+        transform .75s cubic-bezier(.2,.9,.2,1),
+        box-shadow .75s ease;
+
+      transition-delay: .18s;
+      will-change: transform, opacity;
+    }
+    .photo img{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      transform: scale(1.03);
+      filter: contrast(1.03) saturate(.95);
+      display:block;
+    }
+    .fade-bg.in-view .photo{
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      box-shadow: 0 22px 55px rgba(0,0,0,.45);
+    }
+
+    /* WISHES */
+    .wishes .bg{ background-image: url('thing3.jpg'); }
+    .wishes.fallback .bg{
+      background-image: radial-gradient(900px 520px at 30% 40%, rgba(255,255,255,.06), rgba(0,0,0,0)),
+                        linear-gradient(to bottom, rgba(0,0,0,.62), rgba(0,0,0,.50), rgba(0,0,0,.68));
+    }
+    .list{
+      width: min(820px, 100%);
+      text-align:left;
+      margin: 0 auto;
+      padding: 0 clamp(8px, 2vw, 16px);
+    }
+    .list h3{
+      margin: 0 0 14px;
+      font-size: 26px;
+      letter-spacing:.01em;
+    }
+    .list ul{
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display:grid;
+      gap: 12px;
+    }
+    .list li{
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.20);
+      backdrop-filter: blur(10px);
+      color: rgba(255,255,255,.84);
+      line-height: 1.55;
+    }
+    .dot{
+      display:inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(217,192,143,.9);
+      margin-right: 10px;
+      transform: translateY(-1px);
+    }
+
+    /* CLOSING */
+    .closing .card{
+      text-align:center;
+      width: min(740px, 92%);
+    }
+    .signature{
+      margin-top: 14px;
+      color: rgba(255,255,255,.78);
+      font-style: italic;
+    }
+    .btn{
+      margin-top: 18px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.22);
+      backdrop-filter: blur(10px);
+      color: rgba(255,255,255,.90);
+      text-decoration:none;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      letter-spacing:.06em;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+    .btn:hover{ background: rgba(0,0,0,.32); }
+
+    @media (max-width: 780px){
+      .row{
+        flex-direction: column;
+        justify-content:center;
+        padding: 0 12px;
+      }
+      .card{ text-align:center; }
+      .photo{ width: min(420px, 92%); transition-delay: .12s; }
+      .list{ text-align:left; }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      html{ scroll-behavior:auto; }
+      .fade-bg .bg,
+      .fade-bg .content,
+      .fade-bg .row,
+      .photo{ transition:none; transform:none; opacity:1; }
+    }
+
+    .final-title h2{
+      margin:0;
+      font-weight: 600;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      line-height: 1.03;
+      font-size: clamp(42px, 5.1vw, 128px); /* naik sedikit */
+      text-shadow: 0 22px 55px rgba(0,0,0,.60);
+    }
+    .final-title .name{
+      margin-top: 16px;
+      font-size: clamp(16px, 2.1vw, 26px); /* naik sedikit */
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.82);
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- 1) HERO -->
+  <section class="hero" id="top" aria-label="Birthday Hero">
+    <div class="frame top"></div>
+    <div class="frame bottom"></div>
+
+    <div class="bg"></div>
+    <div class="overlay"></div>
+
+    <div class="hero__inner">
+      <div class="hero__stack serif">
+        <div class="hero__age">21st</div>
+        <h1 class="hero__title">HAPPY<br/>BIRTHDAY!</h1>
+        <div class="hero__date serif">February 04, 2026</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2) CHAPTER TITLE -->
+  <section class="scene fade-bg chapter" aria-label="Chapter Title">
+    <div class="bg" style="background-image:url('bg-chapter.jpg')"></div>
+    <div class="overlay"></div>
+
+    <div class="content">
+      <h2 class="h2 serif">A <span class="accent">note</span> for you</h2>
+      <div class="divider"></div>
+    </div>
+  </section>
+
+  <!-- 3) LETTER PAGE 1 -->
+  <section class="scene fade-bg" aria-label="Letter 1">
+    <div class="bg" style="background-image:url('thing1.jpg')"></div>
+    <div class="overlay"></div>
+
+    <div class="row">
+      <div class="card">
+        <div class="eyebrow sans">chapter 01</div>
+        <h3 class="serif">The beginning feels right.</h3>
+        <p class="serif">
+          Di awal yang baru ini,
+          aku melihat harapan di matamu,
+          dan percaya bahwa langkahmu akan sampai pada bahagia.
+          Semoga tahun ini lebih lembut padamu,
+          lebih jujur pada mimpimu,
+          dan lebih ramah pada hatimu.
+        </p>
+      </div>
+
+      <div class="photo" aria-hidden="true">
+        <img src="p1.jpg" alt="">
+      </div>
+    </div>
+  </section>
+
+  <!-- 4) LETTER PAGE 2 -->
+  <section class="scene fade-bg" aria-label="Letter 2">
+    <div class="bg" style="background-image:url('thing2.jpg')"></div>
+    <div class="overlay"></div>
+
+    <div class="row">
+      <div class="card">
+        <div class="eyebrow sans">chapter 02</div>
+        <h3 class="serif">What I notice about you.</h3>
+        <p class="serif">
+        Aku melihat caramu tetap kuat saat lelah,
+        tetap tersenyum meski dunia tak selalu ramah.
+        Aku melihat sabarmu dalam diam,
+        dan tulusmu dalam hal-hal kecil.
+
+        Aku notice,
+        kamu selalu berusaha lebih dari yang orang lihat,
+        selalu mencintai dengan sepenuh hati.
+
+        Dan dari semua itu,
+        aku paling suka satu hal:
+        kamu tetap menjadi kamu,
+        dengan segala kurang dan lebihmu.
+        </p>
+      </div>
+
+      <div class="photo" aria-hidden="true">
+        <img src="p2.jpg" alt="">
+      </div>
+    </div>
+  </section>
+
+  <!-- 5) WISHES -->
+  <section class="scene fade-bg wishes fallback" aria-label="Wishes">
+    <div class="bg" style="background-image:url('thing3.jpg')"></div>
+    <div class="overlay"></div>
+
+    <div class="content list">
+      <h3 class="serif">Wishes for your 21</h3>
+      <ul class="serif">
+        <li><span class="dot"></span>Semoga kamu sehat, tenang, dan tidur cukup.</li>
+        <li><span class="dot"></span>Semoga kamu merasa dicintai dan dihargai.</li>
+        <li><span class="dot"></span>Semoga kamu makin percaya sama pilihanmu sendiri.</li>
+        <li><span class="dot"></span>Semoga kamu terus belajar hal-hal baru.</li>
+        <li><span class="dot"></span>Semoga kamu punya lebih banyak ruang untuk jadi diri sendiri.</li>
+        <li><span class="dot"></span>Semoga kamu bahagia, dengan cara kamu sendiri.</li>
+        <li><span class="dot"></span>Semoga kamu selalu ingat kamu nggak sendiri.</li>
+    </div>
+  </section>
+
+  <!-- 6) CLOSING -->
+  <section class="scene fade-bg closing" aria-label="Closing">
+    <div class="bg" style="background-image:url('thing4.jpg')"></div>
+    <div class="overlay"></div>
+
+    <div class="row" style="justify-content:center;">
+      <div class="card">
+        <h3 class="serif" style="margin-bottom:10px;">Happy 21st.</h3>
+        <p class="serif">
+          Semoga tahun ini bukan hanya deretan hari yang terulang,
+          bukan pula jejak langkah lama yang berjalan di tempat yang sama.
+          Waktu mungkin tetap berputar pada porosnya,
+          mentari tetap terbit dari arah yang sama,
+          namun di balik kebiasaan itu,
+          hidup menyiapkan ruang baru untuk tumbuhmu.
+          Semoga langkahmu selalu dipeluk keberanian,
+          doamu dijawab dengan cara paling indah,
+          dan lelahmu berakhir di bahagia.
+          Jika dunia terasa berat,
+          ingatlah-aku selalu ada.
+        </p>
+        <div class="signature serif">— Rangga Perkasa</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene fade-bg final-title" aria-label="Final Title">
+    <div class="bg" style="background-image:url('closing.jpg')"></div>
+    <div class="overlay"></div>
+
+    <div class="final-title content">
+      <h2>HAPPY BIRTHDAY!</h2>
+      <div class="name">Reffa Simla Melati Putri</div>
+    </div>
+  </section>
+
+  <script>
+    // Fade-in + fade-out: add/remove class based on visibility
+    const sections = document.querySelectorAll('.fade-bg');
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        entry.target.classList.toggle('in-view', entry.isIntersecting);
+      });
+    }, { threshold: 0.25 });
+
+    sections.forEach(sec => io.observe(sec));
+  </script>
+
+</body>
+</html>
