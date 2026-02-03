@@ -433,29 +433,35 @@
     /* AUDIO GATE BUTTON (muncul kalau autoplay diblok) */
     .audio-gate{
       position: fixed;
-      left: 50%;
-      top: 22px;
-      transform: translateX(-50%);
+      inset: 0;
       z-index: 100001;
       display: none;
       align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
+    }
+
+    .audio-gate__btn{
+      display:inline-flex;
+      align-items:center;
+      gap: 12px;
+      padding: 14px 18px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,.18);
-      background: rgba(0,0,0,.28);
-      backdrop-filter: blur(10px);
-      color: rgba(255,255,255,.88);
+      background: rgba(0,0,0,.30);
+      color: rgba(255,255,255,.92);
       cursor: pointer;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      letter-spacing: .08em;
+      letter-spacing: .10em;
       text-transform: uppercase;
-      font-size: 11px;
-      user-select:none;
+      font-size: 12px;
     }
-    .audio-gate:hover{ background: rgba(0,0,0,.38); }
+    .audio-gate__btn:hover{ background: rgba(0,0,0,.40); }
+
     .audio-dot{
-      width: 9px; height: 9px; border-radius: 999px;
+      width: 10px; height: 10px; border-radius: 999px;
       background: var(--pink);
       box-shadow: 0 0 18px rgba(255,111,174,.35);
     }
@@ -483,12 +489,14 @@
 
 <body>
   <!-- AUDIO -->
-  <audio id="bgm" src="song.mp3" preload="auto" loop></audio>
+  <audio id="bgm" src="song.mp3" preload="auto" loop playsinline></audio>
 
   <!-- tombol muncul kalau autoplay diblok -->
-  <button id="audioGate" class="audio-gate" type="button" aria-label="Play music">
-    <span class="audio-dot"></span> Play music
+<div id="audioGate" class="audio-gate" aria-hidden="false">
+  <button id="audioGateBtn" class="audio-gate__btn" type="button">
+    <span class="audio-dot"></span> Tap to play music
   </button>
+</div>
 
   <!-- 1) HERO -->
   <section class="hero" id="top" aria-label="Birthday Hero">
@@ -694,34 +702,56 @@
     // =========================
     // AUDIO AUTOPLAY (safe)
     // =========================
-    const bgm = document.getElementById('bgm');
-    const gate = document.getElementById('audioGate');
+  const bgm = document.getElementById('bgm');
+  const gate = document.getElementById('audioGate');
+  const gateBtn = document.getElementById('audioGateBtn');
 
-    async function tryAutoplay(){
-      if(!bgm) return;
-      bgm.volume = 0.30;
-      bgm.muted = true;
+  function showGate(){
+    if (gate) gate.style.display = 'flex';
+  }
+  function hideGate(){
+    if (gate) gate.style.display = 'none';
+  }
 
-      try{
-        await bgm.play(); // biasanya boleh kalau muted
-      }catch(e){
-        if(gate) gate.style.display = 'inline-flex';
-      }
+  async function startMutedIfPossible(){
+    if(!bgm) return;
+
+    bgm.volume = 0.18;
+    bgm.muted = true;
+
+    try{
+      await bgm.play(); // boleh di beberapa browser kalau muted
+      // tetap tampilkan gate kecil? (opsional)
+      showGate(); // supaya user bisa unmute dengan tap
+    }catch(e){
+      showGate(); // kalau gagal, wajib tap
     }
+  }
 
-    function enableSound(){
-      if(!bgm) return;
+  async function startWithSound(){
+    if(!bgm) return;
+
+    try{
       bgm.muted = false;
-      bgm.play().catch(()=>{});
-      if(gate) gate.style.display = 'none';
+      await bgm.play();          // ini harus dari gesture user
+      hideGate();
+    }catch(e){
+      showGate();
     }
+  }
 
-    window.addEventListener('DOMContentLoaded', tryAutoplay);
+// iOS/Android: gesture paling aman = touchstart/click pada tombol
+gateBtn?.addEventListener('click', startWithSound);
+gateBtn?.addEventListener('touchstart', startWithSound, { passive: true });
 
-    // sekali tap/klik di mana pun -> unmute & play
-    window.addEventListener('pointerdown', enableSound, { once: true });
-    gate?.addEventListener('click', enableSound);
+// kalau user tap di mana pun di layar, juga bisa
+window.addEventListener('touchstart', startWithSound, { once:true, passive:true });
+window.addEventListener('click', startWithSound, { once:true });
+
+// mulai coba muted saat load
+window.addEventListener('DOMContentLoaded', startMutedIfPossible);
   </script>
 
 </body>
 </html>
+
